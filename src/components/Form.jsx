@@ -1,60 +1,65 @@
-import React, { useState } from "react";
+import React, {useEffect ,useState} from "react";
+ 
 import Todo from "./Todo";
-
+import {v4 as uuidv4 } from "uuid";
+ 
 const Form = () => {
     // Estado del todo a ingresar - input
-    const[todo,setTodo] = useState({});
+    const[todo,setTodo] = useState("");
     // Lista de
     const[todos,setTodos] = useState([
-        { todo:'todo 1'},
-        { todo:'todo 2'},
-        { todo:'todo 3'}
+        { id:1 , name:'todo 1'},
+        { id:2 , name:'todo 2'},
         ]);
 
-    const[toggleSubmit,setToggleSubmit] = useState(true); 
+    // Estado del cambio
+    const[editTodo,setEditTodo] = useState(null);
 
+    useEffect(() => {
+        if(editTodo){
+            setTodo(editTodo.name)
+        }else{
+            setTodo("");
+        }
+    }, [setTodo,editTodo]);
+    
 
-    let handleChange = (e) => setTodo({ [e.target.name]:e.target.value });
+    let handleChange = (e) => setTodo(e.target.value);
     
     const handleClick = (e) => {
-        todos.find((element) => {
-            if(element.id === e){
-                alert("estas guardando el mismo como otra tarjeta");
-            }
-        })
-       if(Object.keys(todo).length === 0 || todo.todo.trim() === '' ){
-            alert('el campo no puede estar vacio');
-        }else{
-            setTodos([...todos, todo]);
+        if(!editTodo){
+            setTodos([...todos,{ id:uuidv4(), name: todo  }]);
+            setTodo("");
+        }else {
+            updateTodo(editTodo.id,todo)
         }
-
-    };
-
-
-    const handleEdit = (e) => {
-
-        let ite = todos.find((element) => {
-            if(todos.indexOf(element) === e){
-                //console.log(todos.indexOf(element) === e);
-               // console.log(e);
-                console.log(element);
+   
         
-                return element;
-            }
+    };
 
-        })
-        setTodo(JSON.stringify(ite));
-
-        setToggleSubmit(false);
+    const updateTodo = (id,name) => {
+    const newtodo = todos.map((todo) => 
+             todo.id === id ? { id,name} : todo
+           
+    );
+    setTodos(newtodo);
+    setEditTodo("");
 
     };
 
 
-    const deleteTodo = index => {
-        const newTodos = [...todos];
-        newTodos.splice(index,1);
-        setTodos(newTodos);
-    }
+    const handleEdit = ({id}) => {
+        console.log("El id edit" , id)
+        const findEdit = todos.find((todo) => todo.id === id );
+        setEditTodo(findEdit);
+        console.log("El findEdit" , findEdit)
+    };
+
+
+    const deleteTodo = ({id}) => {
+        console.log(id);
+        setTodos(todos.filter((todo) => todo.id !== id));
+    };
     
     
     
@@ -63,7 +68,7 @@ const Form = () => {
             <div class="global">
                 <form onSubmit = {(e) => e.preventDefault() }>
                         <label> Registro de tareas </label><br /> 
-                        <input type='text' name='todo'  ></input>
+                        <input type='text' name='todo' value={todo} onChange={handleChange} ></input>
                         <button onClick = { handleClick }> Agregar </button>
                 </form>
          
@@ -71,13 +76,21 @@ const Form = () => {
             
        
             {
-            todos.map((value,index) => (
+            todos.map((todo) => (
                 <Todo 
-                todo ={value.todo} key={index} 
-                index={index}
+                todo={todo}
+                setTodo={setTodo}
+                todos={todos}
+                setTodos={setTodos}
+
+                editTodo={editTodo}
+                setEditTodo={setEditTodo}
+            
                 deleteTodo={deleteTodo}
                 handleEdit={handleEdit}
                 />
+
+               
             ))
             } 
 
